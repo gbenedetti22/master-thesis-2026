@@ -1,0 +1,20 @@
+= Conclusions
+
+In this thesis, we have explored the integration of Reservoir Computing (RC) into the modern landscape of generative language modeling. Specifically, we addressed the computational bottlenecks of traditional Transformer-based architectures in handling long sequences. To overcome the quadratic complexity of self-attention, which often necessitates sequence chunking, we proposed a novel diffusion-based language model where the conventional Transformer backbone is replaced by ParalESN, an efficient, untrained linear recurrent layer. 
+
+Our primary objective was to adapt a soft-masked diffusion model for text generation, leveraging the highly parallelizable diagonal linear recurrence of ParalESN. Initially, a key motivation for this architectural shift was the prospect of drastically reducing the total number of trainable parameters by relying on fixed reservoir dynamics. However, empirical development revealed that a significant portion of the trainable parameter budget resides within the Multi-Layer Perceptrons (MLPs) of each residual block, which remain essential for non-linear feature transformation and overall model expressivity. 
+
+Despite this realization regarding parameter distribution, the proposed ParalESN-driven diffusion model demonstrated substantial computational advantages. Our results indicate that ParalESN successfully mitigates the time complexity issues associated with long contexts, outperforming attention-based baselines in training speed for extended sequences. Furthermore, the model maintained competitive Perplexity (PPL) values across both short and long sequences, validating the representational capacity of the untrained reservoir and establishing it as a viable and highly efficient alternative to classical Transformers in diffusion frameworks.
+
+Beyond training efficiency, we extensively evaluated the generative capabilities of the model during inference, demonstrating faster generation speed compared to other models.
+
+Looking forward, this work opens several promising avenues for future research:
+- *Mixture of Experts (MoE) Integration:* A natural extension would be replacing the standard MLPs with a Mixture of Experts architecture @shazeer2017outrageously. These experts could be left untrained or partially trained, potentially integrating ParalESN itself as a specialized routing expert to further optimize computational resources while maintaining expressivity.
+- *Large-Scale Pretraining:* Scaling up the proposed architecture to train on massive datasets would allow for a comprehensive benchmark against state-of-the-art frontier models, thoroughly assessing the limits of diffusion-based reservoir computing in natural language processing.
+- *Hyperparameter Optimization and Freezing:* The extensive hyperparameter space of ParalESN poses a challenge at scale. A hybrid approach could involve a brief initial training phase to dynamically learn and stabilize the reservoir's optimal parameters (e.g., spectral radius and phases) via gradient descent, subsequently freezing them to preserve the Echo State Property (ESP) and retain the benefits of untrained dynamics.
+- *Autoregressive Adaptation:* Finally, evaluating ParalESN within a standard autoregressive language modeling paradigm would provide valuable insights into its relative strengths and weaknesses compared to its performance in the continuous, parallel refinement process of soft-masked diffusion.
+
+Ultimately, by demonstrating the efficacy of ParalESN within a diffusion-based generative framework, this thesis contributes to the ongoing efforts to make sequence modeling more efficient, scalable, and accessible, reaffirming the relevance of reservoir computing principles in the modern deep learning era.
+
+\
+The core contributions of this thesis have been accepted for presentation at the NeurIPS 2026 Workshop (AXIOM) @paper_axiom.
