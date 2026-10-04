@@ -40,7 +40,7 @@
     width: 16cm,
     height: 9cm,
 
-    xlabel: [Sequence Lenght],
+    xlabel: [Sequence Length],
     ylabel: [Inference Time (sec)],
     
     xlim: (0.85, 3.15),

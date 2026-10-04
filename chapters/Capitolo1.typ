@@ -13,13 +13,13 @@ To address these limitations, this thesis explores the integration of Reservoir 
 
 The primary objective of this thesis is to design and evaluate a novel diffusion model for text generation capable of handling long sequences in linear time, without compromising the quality of the generated text. We also aim to demonstrate that ParalESN is a highly competitive alternative to Transformers across various scenarios.
 
-To achieve this, we propose an architecture where the global context management—traditionally handled by the query, key, and value projections of self-attention—is replaced by ParalESN. Because the recurrent reservoir in ParalESN is initialized and kept frozen, the sequence-mixing component requires no backpropagation. This design should reduces the trainable parameter count and memory footprint, bringing performance improvements and efficiency benefits. 
+To achieve this, we propose an architecture where the global context management—traditionally handled by the query, key, and value projections of self-attention—is replaced by ParalESN. Because the recurrent reservoir in ParalESN is initialized and kept frozen, the sequence-mixing component requires no backpropagation. This design should reduce the trainable parameter count and memory footprint, bringing performance improvements and efficiency benefits. 
 
 Specifically, our contributions are as follows:
 - We introduce a novel diffusion backbone that integrates bidirectional ParalESN blocks, Adaptive Layer Normalization (AdaLN) conditioning, and local depthwise convolutions.
 - We adapt the soft-masking mechanism to work seamlessly with our linear recurrent backbone, allowing the model to leverage continuous predictive feedback during the iterative decoding process.
 - We conduct extensive experiments to benchmark the proposed model against baseline Transformer-based diffusion architectures, specifically aiming to demonstrate that:
-  - On *short sequences*, ParalESN maintains competitive results in respect to the Transformer based architecture.
+  - On *short sequences*, ParalESN maintains competitive results with respect to Transformer-based architectures.
   - On *long sequences*, ParalESN significantly outperforms the Transformer in terms of computational time, while keeping comparable perplexity (PPL).
   - In tasks requiring *memory*, ParalESN achieves optimal results by storing past information, despite not being a fully trained model.
 

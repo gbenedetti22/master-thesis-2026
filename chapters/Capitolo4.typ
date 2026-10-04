@@ -61,8 +61,9 @@ $
 In this case, there is no channel switching, and information accumulates over time, exhibiting an oscillatory dynamic greater than 4 ($T>>4$).
 
 == Evaluation
-For all experiments, model quality is quantified using Perplexity (PPL), mathematically defined as $e^cal(L)$, represents the average per-token loss evaluated on the validation set. A lower PPL indicates a more accurate probability distribution over the vocabulary, however the Perplexity is an upper bound since, in discrete Diffusion Models, the marginal likelihood $p_(theta)(x_0)$ is intractable.
+For all experiments, model quality is quantified using Perplexity (PPL). As described in @sec:training_objective, the loss $cal(L)$ is already normalized per token through the factor $1 slash t$, so the perplexity is simply its exponential, evaluated on the validation set:
 $ "PPL" <= exp(cal(L)_("val")(theta)) $
+A lower PPL indicates a more accurate probability distribution over the vocabulary. However, since in discrete Diffusion Models the marginal likelihood $p_(theta)(bold(x)_0)$ is intractable, $cal(L)$ is an upper bound (NELBO) on the true negative log-likelihood, and the reported PPL is therefore an upper bound on the true perplexity.
 
 Due to the high computational cost of pre-training and large-scale benchmarking, all reported results are derived from a single run per configuration (unless otherwise specified). In all tables, the best result will be indicated in bold, and the second-best result will be underlined.
 
@@ -104,7 +105,7 @@ The datasets and tasks used in the experiments are summarized in @tbl:tab:datase
 We first evaluate the models on synthetic datasets, which provide controlled environments with constrained vocabularies and simplified linguistic structures.
 
 === TinyStories <ph:tinystories>
-TinyStories @eldan2023tinystories is a synthetic dataset generated using an LLM, comprising short stories with a simplistic vocabulary tailored for a 3-to-4-year-old reading level. The dataset encompasses approximately 460 million tokens. For this experiment, Configuration 1 of @tbl:tab:esn-comparison, as the narrative structure fundamentally relies on short-range dependencies.
+TinyStories @eldan2023tinystories is a synthetic dataset generated using an LLM, comprising short stories with a simplistic vocabulary tailored for a 3-to-4-year-old reading level. The dataset encompasses approximately 460 million tokens. For this experiment, we use Configuration 1 of @tbl:tab:esn-comparison, as the narrative structure fundamentally relies on short-range dependencies.
 
 In this setting, multiple stories are concatenated within the same input sequence, delimited by the special beginning-of-sequence [BOS] and end-of-sequence [EOS] tokens. This approach is designed to demonstrate the linear complexity of ParalESN compared to the quadratic computational cost typical of standard Transformers. Notably, ParalESN selectively mimics the properties of attention, successfully isolating individual sequences.
 
@@ -155,7 +156,7 @@ While MAMBA achieves the most competitive Perplexity, ParalESN establishes itsel
 Based on these results, purely sequential RNNs (GRU, LRU, standard Reservoir) are excluded from subsequent tests, retaining only ParalESN, Transformer, MAMBA, and S5 to ensure fair hardware utilization comparisons.
 
 === TextBooks
-The TextBooks dataset @gunasekar2023textbooks represents a natural evolution of TinyStories. It comprises 650,000 unique synthetic textbooks containing approximately 439 million tokens. Characterized by longer continuous texts, this benchmark requires Configuration 2 of @tbl:tab:esn-comparison.
+The TextBooks dataset @gunasekar2023textbooks represents a natural evolution of TinyStories. It comprises $650,000$ unique synthetic textbooks containing approximately 439 million tokens. Characterized by longer continuous texts, this benchmark requires Configuration 2 of @tbl:tab:esn-comparison.
 
 #figure(
   table(
@@ -178,7 +179,7 @@ The TextBooks dataset @gunasekar2023textbooks represents a natural evolution of 
 )
 
 ==== Results
-The model was trained using the standard train split provided by Hugging Face @hf_textbooks and using the last $10000$ documents of the split as validation set. Model selection was performed based on the minimum validation loss.
+The model was trained using the standard train split provided by Hugging Face @hf_textbooks and using the last $10,000$ documents of the split as validation set. Model selection was performed based on the minimum validation loss.
 
 #figure(
   caption: [Performance comparison across architectures on TextBooks.],
@@ -202,7 +203,7 @@ Consistent with the TinyStories results, MAMBA retains the best PPL result, like
 Transitioning from synthetic data, we benchmark the models on unstructured, real-world text corpora to assess their capacity to model complex, natural linguistic distributions.
 
 === Wikipedia
-We utilize a cleaned subset of the English Wikipedia dump @hf_wikipedia, constrained to $approx$ 2 billion tokens (40% of the original dataset). The primary objective is to verify whether ParalESN can rival the Transformer's expressiveness under medium context lengths (8192 tokens) on a highly diverse vocabulary. Also this benchmark requires Configuration 2 of @tbl:tab:esn-comparison.
+We utilize a cleaned subset of the English Wikipedia dump @hf_wikipedia, constrained to $approx$ 2 billion tokens (40% of the original dataset). The primary objective is to verify whether ParalESN can rival the Transformer's expressiveness under medium context lengths ($8,192$ tokens) on a highly diverse vocabulary. Also this benchmark requires Configuration 2 of @tbl:tab:esn-comparison.
 
 #figure(
   table(
@@ -227,7 +228,7 @@ We utilize a cleaned subset of the English Wikipedia dump @hf_wikipedia, constra
 Training was extended to two epochs, as empirical observations indicated that the first epoch primarily served as structural alignment given the dataset's vast linguistic diversity.
 
 ==== Results
-The model was trained using the '20231101.en' split provided by Hugging Face @hf_wikitext and using the last $10000$ documents of the split as validation set. Model selection was performed based on the minimum validation loss.
+The model was trained using the '20231101.en' split provided by Hugging Face @hf_wikitext and using the last $10,000$ documents of the split as validation set. Model selection was performed based on the minimum validation loss.
 
 #figure(
   caption: [Performance comparison across architectures on Wikipedia.],
@@ -245,7 +246,7 @@ The model was trained using the '20231101.en' split provided by Hugging Face @hf
   ),
 ) <table_wiki>
 
-While MAMBA achieves the lowest overall perplexity, its significantly higher execution time contrasts with ParalESN, which achieves the fastest training time, although if only for a few minutes, while maintaining a competitive PPL. This establishes ParalESN as the best overall trade-off between predictive performance and training speed. Nevertheless, the overall performance gap across architectures remains moderate: ParalESN performs on par with the standard Transformer, despite keeping $10.0M$ of its parameters fixed.
+While MAMBA achieves the lowest overall perplexity, its significantly higher execution time contrasts with ParalESN, which achieves the fastest training time, although only by a few minutes, while maintaining a competitive PPL. This establishes ParalESN as the best overall trade-off between predictive performance and training speed. Nevertheless, the overall performance gap across architectures remains moderate: ParalESN performs on par with the standard Transformer, despite keeping $10,0M$ of its parameters fixed.
 
 === Preliminary Transfer Experiment on OpenWebText <ph:owt>
 OpenWebText @gokaslan2019openwebtext is an open-source replication of the WebText dataset utilized for GPT-2 @radford2019language, constructed by extracting HTML content from highly upvoted Reddit URLs. We utilized a subset of approximately 9 billion English tokens. 
@@ -276,7 +277,7 @@ Due to hardware limitations, we adopted a transfer learning paradigm. We initial
 )
 
 ==== Results
-The model was trained using the standard train split provided by Hugging Face @hf_openwebtext and using the last $100.000$ documents of the split as validation set. Throughout training, the model processed $approx$ 9B tokens. Model selection was performed based on the minimum validation loss. Training is done on 2 epochs since one epoch was not enough to obtain an optimal PPL.
+The model was trained using the standard train split provided by Hugging Face @hf_openwebtext and using the last $100,000$ documents of the split as validation set. Throughout training, the model processed $approx$ 9B tokens. Model selection was performed based on the minimum validation loss. Training is done on 2 epochs since one epoch was not enough to obtain an optimal PPL.
 
 #figure(
   caption: [Performance comparison across architectures on OpenWebText.],
@@ -362,11 +363,11 @@ During training, sequence lengths are sampled uniformly from the range $L in [2,
     [Training steps], [1000],
     table.hline(stroke: 1pt),
   ),
-  caption: [Common training specifications for the Sequence Copy task. ParalESN use Configuration 1 from @tbl:tab:esn-comparison, given the short sequence lengths involved in this benchmark.]
+  caption: [Common training specifications for the Sequence Copy task. ParalESN uses Configuration 1 from @tbl:tab:esn-comparison, given the short sequence lengths involved in this benchmark.]
 )
 
 ==== Results
-For the sequence copy experiment, the convergence plot below illustrates the accuracy progression across steps evaluated on the training set, while the validation results are reported separately in the @tbl:seq_copy_table using a dedicated validation set. Acccuracy is defined as the ratio of correctly predicted tokens divided by the total tokens.
+For the sequence copy experiment, the convergence plot below illustrates the accuracy progression across steps evaluated on the training set, while the validation results are reported separately in the @tbl:seq_copy_table using a dedicated validation set. Accuracy is defined as the ratio of correctly predicted tokens divided by the total tokens.
 
 #import "@preview/lilaq:0.6.0" as lq
 
@@ -413,7 +414,7 @@ For the sequence copy experiment, the convergence plot below illustrates the acc
       mark: "o",
     ),
   ),
-caption: [Training convergence on the Sequence Copy task on the train set. Token accuracy (\%) is reported at 250, 500, and 1000 training steps. Token accuracy is defined as the fraction of individual tokens in the copied output that exactly match the corresponding tokens in the source sequence.]
+caption: [Training convergence on the Sequence Copy task on the train set. Token accuracy (\%) is reported at $250$, $500$, and $1,000$ training steps. Token accuracy is defined as the fraction of individual tokens in the copied output that exactly match the corresponding tokens in the source sequence.]
 )
 
 // The training convergence curves reveal two distinct convergence profiles among the evaluated architectures. S5 converges almost immediately, achieving 99.8\% accuracy within 250 steps and maintaining perfect performance throughout training. The Transformer exhibits similarly rapid convergence, reaching 96.7\% at 250 steps and 100\% at 500 steps. ParalESN and Mamba, by contrast, display a more gradual learning trajectory: ParalESN progresses from 81.1\% to 99.5\%, while Mamba starts at 61.4\% and reaches 98.9\% at 1000 steps. Nevertheless, all four architectures converge to near-perfect in-distribution accuracy by the end of training, confirming that the task is well within the modelling capacity of each architecture for sequences of length $L <= 15$.
@@ -488,12 +489,12 @@ The Dyck-$k$ language task @suzgun2019evaluating constitutes a rigorous benchmar
   caption: [Dyck-4 Accuracy variation with respect to context length $L$.],
 )
 
-As theorized, the accuracy of the Transformer drops from 66% to 34% as the sequence length escalates to 4096. Conversely, state-space baselines such as Mamba and S5 reach slightly higher absolute accuracy scores. However ParalESN demonstrates remarkable structural stability and robustness across increasing context window lengths, maintaining a constant accuracy of roughly 87% all the way from 256 to 4096 tokens.
+As theorized, the accuracy of the Transformer drops from 66% to 34% as the sequence length escalates to $4,096$. Conversely, state-space baselines such as Mamba and S5 reach slightly higher absolute accuracy scores. However ParalESN demonstrates remarkable structural stability and robustness across increasing context window lengths, maintaining a constant accuracy of roughly 87% all the way from $256$ to $4,096$ tokens.
 
 #pagebreak()
 === Computational Efficiency on Long Contexts
 
-To quantify computational overhead, we plot the execution times (average forward and backward pass duration) against context lengths up to $22.528$ tokens.
+To quantify computational overhead, we plot the execution times (average forward and backward pass duration) against context lengths up to $22,528$ tokens.
 
 #import "@preview/lilaq:0.6.0" as lq
 
@@ -540,14 +541,14 @@ To quantify computational overhead, we plot the execution times (average forward
     label: [MAMBA],
   ),
 ),
-caption: [Training time comparison across models by sequence length. ParalESN and S5 scale significantly better than the Transformer for sequence lengths exceeding $approx 8000$]
+caption: [Training time comparison across models by sequence length. ParalESN and S5 scale significantly better than the Transformer for sequence lengths exceeding $approx 8,000$]
 )
 
 
-The Transformer exhibits optimal execution times for contexts under 8192 tokens. However, beyond this threshold, the $O(L^2)$ complexity of the Self-Attention mechanism imposes a severe temporal penalty. In contrast, ParalESN and S5 capitalizes on its linear recurrence and associative scan parallelization to achieve linear scaling, requiring nearly half the processing time of the Transformer at $22.528$ tokens.
+The Transformer exhibits optimal execution times for contexts under $8,192$ tokens. However, beyond this threshold, the $O(L^2)$ complexity of the Self-Attention mechanism imposes a severe temporal penalty. In contrast, ParalESN and S5 capitalize on their linear recurrence and associative scan parallelization to achieve linear scaling, requiring nearly half the processing time of the Transformer at $22,528$ tokens.
 
 === VRAM Usage
-Memory optimization is a critical architectural requirement. We measured VRAM footprint across two axes: expanding context length (holding model dimension at $approx$ 30M parameters) and expanding model parameters (holding context length at 1024).
+Memory optimization is a critical architectural requirement. We measured VRAM footprint across two axes: expanding context length (holding model dimension at $approx$ 30M parameters) and expanding model parameters (holding context length at $1,024$).
 
 #let seq-lengths = (1024, 2048, 4096, 8192, 16384, 22528)
 
@@ -619,11 +620,11 @@ caption: [VRAM usage comparison across models vs. sequence length. Here, ParalES
       label: [MAMBA],
     )
 ),
-caption: [VRAM usage comparison across models vs. model dimension. Here, S5 requires more VRAM as model dimension increases. Sequence length is fixed to 1024.]
+caption: [VRAM usage comparison across models vs. model dimension. Here, S5 requires more VRAM as model dimension increases. Sequence length is fixed to $1,024$.]
 )
 
 
-As demonstrated in the top plot, ParalESN consistently consumes the least amount of VRAM as the sequence length increases, exhibiting superior memory efficiency compared to all other models. Additionally, the bottom plot shows that ParalESN maintains a low memory footprint across increasing model dimensions (while keeping the same sequence length of 1024), closely matching or beating the Transformer architecture. These findings confirm the scalability and efficiency of ParalESN when handling long sequences under limited GPU resources.
+As demonstrated in the top plot, ParalESN consistently consumes the least amount of VRAM as the sequence length increases, exhibiting superior memory efficiency compared to all other models. Additionally, the bottom plot shows that ParalESN maintains a low memory footprint across increasing model dimensions (while keeping the same sequence length of $1,024$), closely matching or beating the Transformer architecture. These findings confirm the scalability and efficiency of ParalESN when handling long sequences under limited GPU resources.
 
 === Inference Comparison
 In the context of Masked Diffusion Language Models, inference time is fundamentally dictated by the time required to denoise a fully masked sequence across iterative diffusion steps. Therefore, the processing latency per step determines the overall throughput.
@@ -643,7 +644,7 @@ In the context of Masked Diffusion Language Models, inference time is fundamenta
     caption: [Inference time comparison across models. Here, we can clearly see the performance gap between linear models (ParalESN and S5) and the quadratic scaling of the Transformer. MAMBA performs the worst due to the dimension expansion in its SwiGLU @shazeer2020glu layer.]
 )
 
-While the Transformer leverages high hardware utilization for short sequences, it suffers substantial deceleration beyond 16,384 tokens. ParalESN and S5 maintain exceptional inference speeds, establishing them as superior candidates for continuous, real-time generation in Diffusion Language Models processing massive contexts.
+While the Transformer leverages high hardware utilization for short sequences, it suffers substantial deceleration beyond $16,384$ tokens. ParalESN and S5 maintain exceptional inference speeds, establishing them as superior candidates for continuous, real-time generation in Diffusion Language Models processing massive contexts.
 
 === DiESN vs. Autoregressive (Qwen1.5-0.5B)
 
@@ -660,7 +661,7 @@ These experimental results highlight a significant runtime advantage of the cust
 In this experiment, we assess the general contribution of ParalESN. Specifically, we evaluate three distinct ablations: 
 - In relation to @fig:diesn_arch and @fig:diesn_block, the ParalESN branch has been removed to retain only the convolutional layer and the GLA during training on the experiment of @ph:tinystories
 - Similar as before but replacing the ParalESN branch with a simple linear layer (DiESN w. Linear) while keeping all the rest, on the same TinyStories experiment
-- Making both the ParalESN recurrence matrix and the mixer fully trainable and evaluating the model on the first $5000$ steps on OpenWebText (same experiment of @ph:owt).
+- Making both the ParalESN recurrence matrix and the mixer fully trainable and evaluating the model on the first $5,000$ steps on OpenWebText (same experiment of @ph:owt).
 
 #figure(
   caption: [Comparison on TinyStories between the full DiESN model, the model without the ParalESN branch, and the model where ParalESN is replaced by a linear layer.],
@@ -678,7 +679,7 @@ In this experiment, we assess the general contribution of ParalESN. Specifically
 
 #figure(
   caption: [
-    Performance comparison between S5 and ParalESN models on the first $5000$ steps of OpenWebText. The test highlights how the non-trainability of ParalESN leads to a reduction of $approx$ 24%.
+    Performance comparison between S5 and ParalESN models on the first $5,000$ steps of OpenWebText. The test highlights how the non-trainability of ParalESN leads to a reduction of $approx$ 24%.
   ],
   table(
     columns: (1.8fr, auto, 1.3fr, 1.2fr, 1.2fr),
@@ -697,7 +698,7 @@ The results in @tbl:ablation_remove_paralesn highlight the critical role of the 
 Also, as shown in @tbl:ablation_non_trained, enabling parameter trainability in the ParalESN framework introduces a noticeable computational overhead. In smaller architectures, the difference in training time between the fixed and the fully trained variants is negligible. However, as the model grows and the share of fixed parameters increases, keeping the reservoir frozen becomes a clear advantage: in the largest configuration, ParalESN trains in about 51 minutes instead of 1h 08m, saving roughly a quarter of the training time.
 
 == ParalESN vs. S5: The Impact of Accelerated Scan
-Although S5 often delivers performance (in terms of PPL) comparable to ParalESN, its architecture exhibits scalability limitations. The unofficial S5 implementation employs a Triton-based @tillet2019triton kernel for associative scanning, prioritizing generalizability over pure GPU optimization; in contrast, ParalESN avoids this drawback by leveraging highly accelerated, native-CUDA @nickolls2008scalable prefix-sum logic. To pinpoint the actual differences, the S5 library was modified to use the same scanning routine as ParalESN, followed by the training of models of various sizes. Since the specific objective was to compare training speed, the first $5000$ steps of OpenWebText dataset were used.
+Although S5 often delivers performance (in terms of PPL) comparable to ParalESN, its architecture exhibits scalability limitations. The unofficial S5 implementation employs a Triton-based @tillet2019triton kernel for associative scanning, prioritizing generalizability over pure GPU optimization; in contrast, ParalESN avoids this drawback by leveraging highly accelerated, native-CUDA @nickolls2008scalable prefix-sum logic. To pinpoint the actual differences, the S5 library was modified to use the same scanning routine as ParalESN, followed by the training of models of various sizes. Since the specific objective was to compare training speed, the first $5,000$ steps of OpenWebText dataset were used.
 
 #figure(
   table(
@@ -713,7 +714,7 @@ Although S5 often delivers performance (in terms of PPL) comparable to ParalESN,
     [N. of layers], [64],
     [Batch Size], [128],
     [Learning Rate], [$3 times 10^(-4)$],
-    [N. of steps], [$5000$],
+    [N. of steps], [$5,000$],
     table.hline(stroke: 1pt),
   ),
   caption: [Training Specifications for Architectural Scalability Test]
@@ -802,7 +803,7 @@ In @fig:s5_vs_paralesn_1, all execution times were measured, whereas in @fig:s5_
 
 As illustrated in @fig:s5_vs_paralesn_1 and @fig:s5_vs_paralesn_2, increasing the backbone parameters exposes critical bottlenecks. When hitting the 300M+ parameters, S5 temporal cost scales super-linearly. Conversely, ParalESN follows a linear temporal trajectory. For a 600M parameter model, using ParalESN instead of S5 saves several days of computation.
 
-These results clearly show the superiority of ParalESN over S5 in terms of training efficiency. ParalESN is faster in *every* configuration we tested, reducing the training time by 25% to 39%, even though in each pair it has slightly more total parameters than S5. For the largest model (649M parameters), ParalESN completes the 5000 training steps in 51 minutes, while S5 needs almost 69 minutes. The trend lines of @fig:s5_vs_paralesn_1 also show that the training time of ParalESN grows about 27% more slowly with model size than that of S5, so the gap keeps widening as models become larger: over one million training steps, the estimated saving reaches about 2.4 days (@fig:s5_vs_paralesn_2).
+These results clearly show the superiority of ParalESN over S5 in terms of training efficiency. ParalESN is faster in every configuration we tested, reducing the training time by 25% to 39%, even though in each pair it has slightly more total parameters than S5. For the largest model (649M parameters), ParalESN completes the 5000 training steps in 51 minutes, while S5 needs almost 69 minutes. The trend lines of @fig:s5_vs_paralesn_1 also show that the training time of ParalESN grows about 27% more slowly with model size than that of S5, so the gap keeps widening as models become larger: over one million training steps, the estimated saving reaches about 2.4 days (@fig:s5_vs_paralesn_2).
 
 It is important to stress that, in this experiment, both models use exactly the same scan routine. The advantage of ParalESN is therefore not due to a better implementation, but to its architecture: since the reservoir parameters are fixed, no gradients have to be computed for them and no optimizer states have to be stored, which saves both computation and memory at every training step.
 

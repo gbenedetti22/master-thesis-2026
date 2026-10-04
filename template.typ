@@ -6,6 +6,54 @@
 #let in-appendix = state("in-appendix", false)
 #let suppress-header-pages = state("suppress-header-pages", ())
 
+// Titolo breve di una figura per l'elenco delle figure: la prima frase della didascalia,
+// troncata a `max` caratteri (al limite di parola) con "…". Il resto resta solo sotto la figura.
+#let short-caption(el, max: 50) = {
+  let kids = if el.caption.body.has("children") { el.caption.body.children } else { (el.caption.body,) }
+  let out = ()
+  let used = 0
+  let cut = false
+  for k in kids {
+    if cut { break }
+    if k.func() == text {
+      let t = k.text
+      // fine della prima frase: un punto seguito da spazio, ma non in "vs." / "e.g." / "i.e."
+      let end = none
+      for m in t.matches(regex("\\.(\\s|$)")) {
+        let before = t.slice(0, m.start)
+        if not (before.ends-with("vs") or before.ends-with("e.g") or before.ends-with("i.e")) {
+          end = m.start
+          break
+        }
+      }
+      if end != none {
+        t = t.slice(0, end)
+        cut = true
+      }
+      if used + t.len() > max {
+        t = t.slice(0, max - used)
+        let sp = t.clusters().rev().position(c => c == " ")
+        if sp != none and sp < t.len() - 1 { t = t.slice(0, t.len() - sp - 1) }
+        t = t.trim() + "…"
+        cut = true
+      }
+      used += t.len()
+      out.push(t)
+    } else {
+      out.push(k)
+    }
+  }
+  out.join()
+}
+
+// Pagina dei ringraziamenti: titolo localizzato in base alla lingua della tesi,
+// non inserita nell'indice e senza testatina.
+#let acknowledgements(body) = context {
+  let title = if text.lang == "it" { "Ringraziamenti" } else { "Acknowledgements" }
+  heading(level: 1, numbering: none, outlined: false, title)
+  body
+}
+
 #let appendix(body) = {
   in-appendix.update(true)
   counter(heading).update(0)
@@ -32,11 +80,34 @@
   relatori: none,
   anno-accademico: none,
   lang: "it",
+  // Margini del frontespizio (indipendenti da quelli del resto della tesi)
+  frontespizio-margin: (top: 3cm, bottom: 2cm, left: 3cm, right: 3cm),
+  // Dedica (contenuto): pagina a destra in corsivo dopo il frontespizio; `none` per ometterla
+  dedication: none,
+  // Indice generale ed elenco delle figure (titoli localizzati in base a `lang`)
+  tableofcontents: false,
+  lof: false,
+  toc-depth: 3,
   body,
 ) = {
   import "@preview/i-figured:0.2.4"
   
   show figure.caption: set align(center)
+
+  // Numeri nel testo scritti come formula inline con la virgola delle migliaia (es. $100,000$):
+  // in modalità matematica Typst aggiunge uno spazio dopo la virgola ("100, 000"), che qui
+  // viene tolto. Vale solo per formule inline composte da sole cifre, virgole, spazi e "≈".
+  show math.equation.where(block: false): it => {
+    let kids = if it.body.has("children") { it.body.children } else { (it.body,) }
+    let ok = kids.all(k => repr(k.func()) in ("text", "symbol", "space"))
+    if ok {
+      let str-body = kids.map(k => if repr(k.func()) == "space" { " " } else { k.text }).join()
+      if str-body.match(regex("^[0-9,≈ ]*[0-9],[0-9]{3}[0-9,≈ ]*$")) != none {
+        return math.equation(block: false, eval("\"" + str-body + "\"", mode: "math"))
+      }
+    }
+    it
+  }
 
   let title = if titolo != none { titolo } else { title }
   let author = if candidato != none { candidato } else if autore != none { autore } else { author }
@@ -55,8 +126,15 @@
       let page-num = here().page()
       let supp = suppress-header-pages.final()
       
-      // Nessuna testatina sul frontespizio o sulle pagine d'inizio capitolo
-      if page-num <= 1 or page-num in supp {
+      // La testatina inizia solo con il primo capitolo numerato: nessuna testatina
+      // su indice, elenco figure, ringraziamenti (e frontespizio, che ha la sua pagina)
+      let chapters = query(heading.where(level: 1)).filter(h => h.numbering != none)
+      if chapters.len() == 0 or page-num < chapters.first().location().page() {
+        return none
+      }
+
+      // Nessuna testatina sulle pagine d'inizio capitolo
+      if page-num in supp {
         return none
       }
 
@@ -239,50 +317,71 @@
   // Indice con collegamenti e formattazione LaTeX (Capitoli in grassetto)
   show outline: set heading(numbering: none)
 
-  show outline.entry.where(level: 1): it => {
-    v(12pt)
-    text(weight: "bold", it)
-  }
-
   show outline.entry: it => {
     if it.element.func() == figure {
-      let loc = it.element.location()
-      context {
-        let ch = counter(heading).at(loc).at(0, default: 1)
-        let f-num = counter(figure.where(kind: image)).at(loc).at(0, default: 1)
-        let num-str = str(ch) + "." + str(f-num)
-        link(loc)[
-          #num-str
-          #h(1.2em)
-          #it.element.caption.body
-          #box(width: 1fr, it.fill)
-          #text(fill: black)[#it.page()]
-        ]
-      }
+      // Elenco delle figure: "numero  titolo breve ....... pagina", una voce per riga
+      let el = it.element
+      let loc = el.location()
+      let num = numbering(el.numbering, ..el.counter.at(loc))
+      block(width: 100%, above: 0.9em, below: 0.9em)[
+        #set par(first-line-indent: 0pt, hanging-indent: 3em, justify: false)
+        #link(loc)[#box(width: 3em)[#num]#short-caption(el)#box(width: 1fr, it.fill)#it.page()]
+      ]
+    } else if it.level == 1 {
+      v(12pt)
+      text(weight: "bold", it)
     } else {
       it
     }
   }
 
-  // Generazione automatica del frontespizio
-  frontespizio(
-    title: title,
-    author: author,
-    department: department,
-    degree: degree,
-    supervisors: supervisors,
-    academic-year: academic-year,
-    titolo: titolo,
-    autore: autore,
-    candidato: candidato,
-    dipartimento: dipartimento,
-    tipo-laurea: tipo-laurea,
-    corso-di-laurea: corso-di-laurea,
-    relatori: relatori,
-    anno-accademico: anno-accademico,
-  )
+  // Generazione automatica del frontespizio, in una pagina a sé con margini propri
+  page(margin: frontespizio-margin, header: none, footer: none)[
+    #frontespizio(
+      title: title,
+      author: author,
+      department: department,
+      degree: degree,
+      supervisors: supervisors,
+      academic-year: academic-year,
+      titolo: titolo,
+      autore: autore,
+      candidato: candidato,
+      dipartimento: dipartimento,
+      tipo-laurea: tipo-laurea,
+      corso-di-laurea: corso-di-laurea,
+      relatori: relatori,
+      anno-accademico: anno-accademico,
+    )
+  ]
   show heading: i-figured.reset-counters
   show figure: i-figured.show-figure
+
+  // Pagina di dedica: testo allineato a destra, in corsivo, nella parte alta della pagina
+  if dedication != none {
+    page(header: none, footer: none)[
+      #v(28%)
+      #align(right)[
+        #block(width: 60%)[
+          #set text(font: ("Libertinus Serif", "New Computer Modern"), style: "italic", size: 15pt)
+          #set par(justify: false, first-line-indent: 0pt, leading: 0.9em)
+          #set align(right)
+          #dedication
+        ]
+      ]
+    ]
+  }
+
+  // Indice generale ed elenco delle figure (opzionali, titolo secondo `lang`)
+  if tableofcontents {
+    outline(title: if lang == "it" [Indice] else [Table of Contents], depth: toc-depth)
+  }
+  if lof {
+    outline(
+      title: if lang == "it" [Elenco delle figure] else [List of Figures],
+      target: figure.where(kind: "i-figured-image"),
+    )
+  }
 
   body
 }

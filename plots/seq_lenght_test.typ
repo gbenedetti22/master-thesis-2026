@@ -3,7 +3,7 @@
 #let xs = (1024, 2048, 4096, 8192, 16384, 22528)
 
 #lq.diagram(
-  xlabel: [Sequence Lenght],
+  xlabel: [Sequence Length],
   ylabel: [Time (ms)],
   legend: (position: top + left),
   width: 100%,

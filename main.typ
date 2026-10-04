@@ -12,22 +12,27 @@
   ),
   academic-year: "2026/2027",
   lang: "en",
+  // Dedica (commentare le righe per toglierla)
+  // TODO: sostituire con la dedica vera
+  dedication: [
+    a ... \
+    \
+    chi non c'è più, \
+    ma rimane amore che persevera.
+  ],
+  tableofcontents: true,
+  lof: false,
 )
 
-// Indice Generale
-#outline(title: "Indice", depth: 3)
-
-// Elenco delle Figure (scommentare se desiderato)
-#outline(title: "Figures", target: figure.where(kind: image))
-
-#pagebreak()
-Ringraziamenti
 // Capitoli
 #include "chapters/Capitolo1.typ"
 #include "chapters/Capitolo2.typ"
 #include "chapters/Capitolo3.typ"
 #include "chapters/Capitolo4.typ"
 #include "chapters/Capitolo5.typ"
+
+// Ringraziamenti (commentare la riga per toglierli)
+// #include "chapters/Ringraziamenti.typ"
 
 // // Appendici
 // #show: appendix

@@ -4,7 +4,7 @@
 
 = Background <background>
 
-This chapter outlines the theoretical foundations underpinning the development of the Soft Masked Diffusion Model proposed in this thesis. We begin by introducing Reservoir Computing, focusing on the Echo State Network (ESN) and its modern, scalable evolution, the Parallel Echo State Network (ParalESN). We then review the evolution of sequence process paradigms, highlighting the architectural trade-offs between expressivity and computational efficiency. Finally, we detail the framework of Diffusion Language Models, discussing both continuous and discrete approaches, and formalizing the Soft-Masking mechanism that enhances the denoising process.
+This chapter outlines the theoretical foundations underpinning the development of the Soft Masked Diffusion Model proposed in this thesis. We begin by introducing Reservoir Computing, focusing on the Echo State Network (ESN) and its modern, scalable evolution, the Parallel Echo State Network (ParalESN). We then review the evolution of sequence processing paradigms, highlighting the architectural trade-offs between expressivity and computational efficiency. Finally, we detail the framework of Diffusion Language Models, discussing both continuous and discrete approaches, and formalizing the Soft-Masking mechanism that enhances the denoising process.
 
 == Recurrent Neural Networks <rnn>
 
@@ -162,7 +162,7 @@ The gating mechanism provides the GRU with the ability to learn when to update a
 
 == The Transformer Architecture <transformer>
 
-The Transformer architecture, introduced by @vaswani2023attentionneed, represent a paradigm shift in sequence modeling by entirely dispensing with recurrence. Instead of processing sequences step by step, the Transformer relies on a _self-attention_ mechanism that allows each position in the sequence to attend to all other positions simultaneously, enabling full parallelization over the sequence length.
+The Transformer architecture, introduced by @vaswani2023attentionneed, represents a paradigm shift in sequence modeling by entirely dispensing with recurrence. Instead of processing sequences step by step, the Transformer relies on a _self-attention_ mechanism that allows each position in the sequence to attend to all other positions simultaneously, enabling full parallelization over the sequence length.
 
 The core operation of the Transformer is *Scaled Dot-Product Attention*. Given a sequence of input representations, three linear projections produce the _query_, _key_, and _value_ matrices $Q, K, V in RR^(L times d_k)$, where $L$ is the sequence length and $d_k$ is the dimensionality of each head. The attention output is computed as:
 
@@ -276,7 +276,7 @@ The network never has to produce a complete sample in a single shot: it only has
 
 #figure(
   image("../assets/images/cat diffusion.png"),
-  caption: [*The diffusion process:* Starting from a clean image, random noise is progressively added until the original structure is completely obscured (forward pass). During generation, the process is reversed: the model gradually removes the noise, step by step, to reconstruct the image (backward bass).
+  caption: [*The diffusion process:* Starting from a clean image, random noise is progressively added until the original structure is completely obscured (forward pass). During generation, the process is reversed: the model gradually removes the noise, step by step, to reconstruct the image (backward pass).
   ],
 ) <diffusion_toy>
 
@@ -503,9 +503,9 @@ $
 
 where $circle.small$ is the element-wise product. Discrete diffusion therefore has exactly the same ingredients as Gaussian diffusion: closed-form marginals and a tractable posterior. The NELBO derived above applies unchanged, with KL divergences between categorical distributions instead of Gaussian ones. The denoiser $f_theta (bold(x)_t, t)$ now outputs, for each position, a probability distribution over the vocabulary (through a softmax), which replaces $bold(x)_0$ in the posterior to obtain the reverse transitions.
 
-The choice of $Q_t$ determines how tokens are corrupted. The most effictive way is by extending the vocabulary to include a special [MASK] token. During the transition process, each token has a probability 1−βt​ of remaining unchanged and a probability βt​ of being replaced by the [MASK] token. In this case $Q_t = (1 - beta_t) I + beta_t bold(1) bold(m)$.
+The choice of $Q_t$ determines how tokens are corrupted. The most effective way is by extending the vocabulary to include a special [MASK] token. During the transition process, each token has a probability $1 - beta_t$ of remaining unchanged and a probability $beta_t$ of being replaced by the [MASK] token. In this case $Q_t = (1 - beta_t) I + beta_t bold(1) bold(m)$.
 
-Austin et al. @austin2021d3pm found that the this process works best for text. This corruption closely resembles the masked language modeling task of BERT @devlin2019bert: the denoiser receives a sentence in which some words are hidden and must guess them from the visible context.
+Austin et al. @austin2021d3pm found that this process works best for text. This corruption closely resembles the masked language modeling task of BERT @devlin2019bert: the denoiser receives a sentence in which some words are hidden and must guess them from the visible context.
 
 ==== Masked Diffusion Language Models (MDLM)
 
