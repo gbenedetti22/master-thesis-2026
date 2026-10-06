@@ -53,6 +53,8 @@
     #text(size: 20pt, weight: "bold")[#title]
   ]
 
+  
+
   v(30mm)
   let s = 5mm
   grid(
@@ -70,11 +72,9 @@
     ),
   )
 
-  align(bottom)[
-    #line(length: 100%, stroke: 0.5pt)
-
-    #align(center)[
-      #text(size: 13pt)[#year-text]
-    ]
-  ]
+  align(bottom, stack(
+    spacing: 5.75pt,
+    line(length: 100%, stroke: 0.4pt),
+    align(center, text(size: 14.5pt)[#year-text]),
+  ))
 }

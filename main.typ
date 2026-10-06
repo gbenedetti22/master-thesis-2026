@@ -12,14 +12,12 @@
   ),
   academic-year: "2026/2027",
   lang: "en",
-  // Dedica (commentare le righe per toglierla)
-  // TODO: sostituire con la dedica vera
-  dedication: [
-    a ... \
-    \
-    chi non c'è più, \
-    ma rimane amore che persevera.
-  ],
+  // dedication: [
+  //   a ... \
+  //   \
+  //   chi non c'è più, \
+  //   ma rimane amore che persevera.
+  // ],
   tableofcontents: true,
   lof: false,
 )

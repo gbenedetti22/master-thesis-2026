@@ -81,7 +81,7 @@
   anno-accademico: none,
   lang: "it",
   // Margini del frontespizio (indipendenti da quelli del resto della tesi)
-  frontespizio-margin: (top: 3cm, bottom: 2cm, left: 3cm, right: 3cm),
+  frontespizio-margin: (top: 3cm, bottom: 3cm, left: 3.5cm, right: 3.5cm),
   // Dedica (contenuto): pagina a destra in corsivo dopo il frontespizio; `none` per ometterla
   dedication: none,
   // Indice generale ed elenco delle figure (titoli localizzati in base a `lang`)
@@ -363,7 +363,7 @@
       #v(28%)
       #align(right)[
         #block(width: 60%)[
-          #set text(font: ("Libertinus Serif", "New Computer Modern"), style: "italic", size: 15pt)
+          #set text( style: "italic", size: 15pt)
           #set par(justify: false, first-line-indent: 0pt, leading: 0.9em)
           #set align(right)
           #dedication
